@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroDeploy</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f0e;
+    --surface: #151714;
+    --surface2: #1c1f1d;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8ede9;
+    --muted: #7a8a7d;
+    --accent: #4ade80;
+    --accent2: #86efac;
+    --accent-dim: rgba(74,222,128,0.1);
+    --accent-dim2: rgba(74,222,128,0.06);
+    --blue: #60a5fa;
+    --orange: #fb923c;
+    --purple: #a78bfa;
+    --yellow: #facc15;
+    --red: #f87171;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+    --sans: 'Bricolage Grotesque', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 2rem 0;
+  }
+  .sidebar-brand {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+  .sidebar-brand .logo {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 0.5rem;
+  }
+  .logo-dot {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #22c55e);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: #000;
+  }
+  .sidebar-brand h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; color: var(--text); }
+  .sidebar-brand p { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .nav-section { margin-bottom: 0.5rem; }
+  .nav-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 0 1.5rem; margin: 1.2rem 0 0.4rem;
+  }
+  .nav-item {
+    display: block; text-decoration: none;
+    padding: 6px 1.5rem;
+    font-size: 13px; color: var(--muted);
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { color: var(--text); background: var(--accent-dim2); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim2); }
+  .nav-item .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 4px;
+    background: var(--accent-dim); color: var(--accent);
+    font-size: 10px; font-weight: 600; margin-right: 8px;
+  }
+
+  /* Main */
+  .main { padding: 3rem 4rem 6rem; max-width: 860px; }
+
+  /* Hero */
+  .hero { margin-bottom: 4rem; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-dim);
+    padding: 5px 12px; border-radius: 100px;
+    border: 1px solid rgba(74,222,128,0.2);
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-style: italic;
+    font-size: 52px; line-height: 1.1; font-weight: 400;
+    margin-bottom: 1.2rem;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub { font-size: 16px; color: var(--muted); max-width: 560px; line-height: 1.8; }
+  .tech-pills { display: flex; gap: 8px; margin-top: 1.5rem; flex-wrap: wrap; }
+  .pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 500; border: 1px solid;
+  }
+  .pill-green { background: rgba(74,222,128,0.08); color: var(--accent2); border-color: rgba(74,222,128,0.25); }
+  .pill-blue  { background: rgba(96,165,250,0.08); color: var(--blue); border-color: rgba(96,165,250,0.25); }
+  .pill-purple{ background: rgba(167,139,250,0.08); color: var(--purple); border-color: rgba(167,139,250,0.25); }
+  .pill-orange{ background: rgba(251,146,60,0.08); color: var(--orange); border-color: rgba(251,146,60,0.25); }
+
+  /* Section */
+  .section { margin-bottom: 3.5rem; }
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 1.5rem; padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent-dim); border: 1px solid rgba(74,222,128,0.25);
+    font-size: 13px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+  }
+  .section h2 { font-size: 22px; font-weight: 500; color: var(--text); }
+  .section-desc { color: var(--muted); margin-bottom: 1.5rem; font-size: 14px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .card-body { font-size: 13px; color: var(--muted); }
+
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: #0a0c0b;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent); font-family: var(--mono);
+  }
+  .code-filename { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .copy-btn {
+    font-size: 11px; color: var(--muted); background: none; border: 1px solid var(--border);
+    border-radius: 5px; padding: 3px 10px; cursor: pointer; font-family: var(--sans);
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--border2); }
+  pre {
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: #c8d3c9;
+  }
+  .kw { color: #a78bfa; }
+  .str { color: #86efac; }
+  .cm { color: #4a5a4d; font-style: italic; }
+  .fn { color: #60a5fa; }
+  .var { color: #e8ede9; }
+  .num { color: #fb923c; }
+  .tag { color: #f87171; }
+  .attr { color: #facc15; }
+
+  /* Info box */
+  .info-box {
+    display: flex; gap: 12px;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    border: 1px solid;
+    font-size: 13px;
+  }
+  .info-box.tip { background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.2); color: var(--accent2); }
+  .info-box.warn { background: rgba(251,146,60,0.06); border-color: rgba(251,146,60,0.2); color: var(--orange); }
+  .info-box.note { background: rgba(96,165,250,0.06); border-color: rgba(96,165,250,0.2); color: var(--blue); }
+  .info-box-icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .info-box strong { font-weight: 600; }
+
+  /* Steps list */
+  .steps-list { list-style: none; }
+  .steps-list li {
+    display: flex; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    align-items: flex-start;
+  }
+  .steps-list li:last-child { border-bottom: none; }
+  .step-bullet {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--accent-dim); color: var(--accent);
+    font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  /* Feature table */
+  .feat-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .feat-table th {
+    text-align: left; padding: 10px 14px;
+    background: var(--surface2); color: var(--muted);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .feat-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  .feat-table tr:last-child td { border-bottom: none; }
+  .feat-table tr:hover td { background: var(--accent-dim2); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: rgba(74,222,128,0.15); color: var(--accent2); }
+  .badge-blue  { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .badge-orange{ background: rgba(251,146,60,0.15); color: var(--orange); }
+
+  /* Tabs */
+  .tabs { margin-bottom: 1rem; }
+  .tab-list {
+    display: flex; gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px;
+    margin-bottom: 0;
+  }
+  .tab-btn {
+    flex: 1; padding: 7px 14px;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    color: var(--muted); border-radius: 7px;
+    transition: all 0.15s;
+  }
+  .tab-btn.active { background: var(--accent-dim); color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+  /* Flow diagram */
+  .flow-diagram {
+    display: flex; align-items: stretch; gap: 0;
+    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+  .flow-node {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 14px 20px; border-radius: 10px; text-align: center;
+    background: var(--surface2); border: 1px solid var(--border);
+    min-width: 110px; flex-shrink: 0;
+  }
+  .flow-node .fn-icon { font-size: 20px; margin-bottom: 6px; }
+  .flow-node .fn-label { font-size: 11px; font-weight: 600; color: var(--text); }
+  .flow-node .fn-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .flow-node.accent { background: var(--accent-dim); border-color: rgba(74,222,128,0.3); }
+  .flow-node.accent .fn-label { color: var(--accent); }
+  .flow-arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 16px; padding: 0 8px; flex-shrink: 0;
+  }
+
+  /* Progress tracker */
+  .progress-bar {
+    height: 3px; background: var(--border);
+    border-radius: 100px; margin: 0.5rem 0 1.5rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--blue));
+    border-radius: 100px; transition: width 0.4s ease;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+  .sidebar-brand-title {
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .sidebar-brand-subtitle {
+    font-size: 11px; color: var(--muted); margin-top: 6px;
+  }
+  .flow-diagram-column {
+    flex-direction: column; gap: 0;
+  }
+  .flow-diagram-row {
+    display: flex; align-items: center; gap: 0; justify-content: center;
+  }
+  .flow-diagram-arrow-down {
+    display: flex; justify-content: center; padding: 6px 0; color: var(--muted);
+  }
+  .feat-table-wrapper {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  }
+  .card-accent {
+    border-left: 3px solid var(--accent);
+  }
+  .card-blue {
+    border-left: 3px solid var(--blue);
+  }
+  .card-purple {
+    border-left: 3px solid var(--purple);
+  }
+  .card-orange {
+    border-left: 3px solid var(--orange);
+  }
+  .card-yellow {
+    border-left: 3px solid var(--yellow);
+  }
+  .info-box-tip-mt {
+    margin-top: 1.5rem;
+  }
+  .footer-text {
+    padding: 2rem 0; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 2rem 1.5rem 4rem; }
+    .card-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">
+        <div class="logo-dot">G</div>
+        <div>
+          <div class="sidebar-brand-title">NeuroDeploy</div>
+        </div>
+      </div>
+      <!-- <p class="sidebar-brand-subtitle">Gemini · ADK · Cloud Run</p> -->
+    </div>
+
+    <div class="nav-label">Overview</div>
+    <a href="#overview" class="nav-item active">Introduction</a>
+    <a href="#architecture" class="nav-item">Architecture</a>
+
+    <div class="nav-label">Setup</div>
+    <a href="#step1" class="nav-item"><span class="step-num">1</span>Prerequisites</a>
+    <a href="#step2" class="nav-item"><span class="step-num">2</span>Project Setup</a>
+    <a href="#step3" class="nav-item"><span class="step-num">3</span>Install ADK</a>
+
+    <div class="nav-label">Build Agent</div>
+    <a href="#step4" class="nav-item"><span class="step-num">4</span>Define Tools</a>
+    <a href="#step5" class="nav-item"><span class="step-num">5</span>Create Agent</a>
+    <a href="#step6" class="nav-item"><span class="step-num">6</span>Multi-Agent</a>
+
+    <div class="nav-label">Deploy</div>
+    <a href="#step7" class="nav-item"><span class="step-num">7</span>Containerize</a>
+    <a href="#step8" class="nav-item"><span class="step-num">8</span>Cloud Run</a>
+    <a href="#step9" class="nav-item"><span class="step-num">9</span>CI/CD Pipeline</a>
+
+    <div class="nav-label">Production</div>
+    <a href="#step10" class="nav-item"><span class="step-num">10</span>Monitoring</a>
+    <a href="#patterns" class="nav-item">Patterns & Tips</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Hero -->
+    <section class="hero" id="overview">
+      <div class="hero-eyebrow">
+        <span>●</span> Complete Developer Guide
+      </div>
+      <h1>Build & Deploy<br>AI Agents</h1>
+      <p class="hero-sub">A hands-on guide to building intelligent agents with Google's Agent Development Kit, powered by Gemini, and deployed to Cloud Run at scale.</p>
+      <div class="tech-pills">
+        <span class="pill pill-green">Gemini 2.0 Flash</span>
+        <span class="pill pill-blue">Agent Dev Kit (ADK)</span>
+        <span class="pill pill-purple">Google Cloud Run</span>
+        <span class="pill pill-orange">Python 3.11+</span>
+      </div>
+    </section>
+
+    <!-- What is ADK -->
+    <section class="section" id="adk-intro">
+      <div class="section-header">
+        <div class="step-badge">?</div>
+        <h2>What is the Agent Development Kit?</h2>
+      </div>
+      <p class="section-desc">Google's Agent Development Kit (ADK) is an open-source Python framework for building, orchestrating, and deploying AI agents. It provides first-class support for Gemini models and integrates seamlessly with Google Cloud.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">🧠 Model Agnostic</div>
+          <div class="card-body">Use Gemini 2.0 Flash, Pro, or any Vertex AI model. Switch models with one line of config.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔧 Built-in Tool Use</div>
+          <div class="card-body">Define Python functions as tools. ADK handles function calling, schemas, and execution loop automatically.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🤝 Multi-Agent</div>
+          <div class="card-body">Compose agents into hierarchies. Route tasks to specialist sub-agents using orchestrators.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🌐 Deployment Ready</div>
+          <div class="card-body">Built-in FastAPI server, session management, and Vertex AI Agent Engine integration.</div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="info-box-icon">💡</span>
+        <span><strong>ADK vs LangChain:</strong> ADK is optimized for Gemini function calling and Google Cloud. LangChain is more general-purpose. Use ADK when you're building on GCP with Gemini.</span>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section" id="architecture">
+      <div class="section-header">
+        <div class="step-badge">⬡</div>
+        <h2>System Architecture</h2>
+      </div>
+      <p class="section-desc">How an ADK agent request flows from client to Cloud Run to Gemini and back.</p>
+
+      <div class="flow-diagram flow-diagram-column">
+        <!-- Row 1 -->
+        <div class="flow-diagram-row">
+          <div class="flow-node">
+            <div class="fn-icon">👤</div>
+            <div class="fn-label">Client</div>
+            <div class="fn-sub">HTTP / WebSocket</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="fn-icon">🌐</div>
+            <div class="fn-label">Cloud Run</div>
+            <div class="fn-sub">FastAPI server</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node accent">
+            <div class="fn-icon">🤖</div>
+            <div class="fn-label">ADK Runner</div>
+            <div class="fn-sub">Orchestrator</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="fn-icon">✨</div>
+            <div class="fn-label">Gemini API</div>
+            <div class="fn-sub">Vertex AI</div>
+          </div>
+        </div>
+        <!-- Arrow down -->
+        <div class="flow-diagram-arrow-down">↓</div>
+        <!-- Row 2 -->
+        <div class="flow-diagram-row">
+          <div class="flow-node">
+            <div class="fn-icon">📦</div>
+            <div class="fn-label">Session Store</div>
+            <div class="fn-sub">Firestore / Redis</div>
+          </div>
+          <div class="flow-arrow">←</div>
+          <div class="flow-node accent">
+            <div class="fn-icon">🔧</div>
+            <div class="fn-label">Tool Executor</div>
+            <div class="fn-sub">Function calls</div>
+          </div>
+          <div class="flow-arrow">←</div>
+          <div class="flow-node">
+            <div class="fn-icon">🔄</div>
+            <div class="fn-label">ReAct Loop</div>
+            <div class="fn-sub">Think → Act</div>
+          </div>
+          <div class="flow-arrow">←</div>
+          <div class="flow-node">
+            <div class="fn-icon">🗄️</div>
+            <div class="fn-label">External APIs</div>
+            <div class="fn-sub">Tools & data</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- STEP 1: Prerequisites -->
+    <section class="section" id="step1">
+      <div class="section-header">
+        <div class="step-badge">1</div>
+        <h2>Prerequisites</h2>
+      </div>
+      <p class="section-desc">Ensure these are installed and configured before starting.</p>
+
+      <table class="feat-table feat-table-wrapper">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Version</th>
+            <th>Purpose</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Python</td>
+            <td>3.11+</td>
+            <td>Runtime environment</td>
+            <td><span class="badge badge-green">Required</span></td>
+          </tr>
+          <tr>
+            <td>Google Cloud CLI</td>
+            <td>latest</td>
+            <td>GCP authentication & deployment</td>
+            <td><span class="badge badge-green">Required</span></td>
+          </tr>
+          <tr>
+            <td>Docker Desktop</td>
+            <td>24+</td>
+            <td>Build container images</td>
+            <td><span class="badge badge-green">Required</span></td>
+          </tr>
+          <tr>
+            <td>Vertex AI API</td>
+            <td>—</td>
+            <td>Gemini model access</td>
+            <td><span class="badge badge-orange">Enable in GCP</span></td>
+          </tr>
+          <tr>
+            <td>Cloud Run API</td>
+            <td>—</td>
+            <td>Serverless deployment</td>
+            <td><span class="badge badge-orange">Enable in GCP</span></td>
+          </tr>
+          <tr>
+            <td>Artifact Registry</td>
+            <td>—</td>
+            <td>Container image storage</td>
+            <td><span class="badge badge-blue">Optional</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <span class="code-filename">setup — enable GCP APIs</span>
+          <button class="copy-btn" type="button" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="cm"># Authenticate with Google Cloud</span>
+<span class="fn">gcloud</span> auth login
+<span class="fn">gcloud</span> auth application-default login
+
+<span class="cm"># Set your project</span>
+<span class="fn">gcloud</span> config set project <span class="str">YOUR_PROJECT_ID</span>
+
+<span class="cm"># Enable required APIs</span>
+<span class="fn">gcloud</span> services enable \
+  aiplatform.googleapis.com \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com</pre>
+      </div>
+    </section>
+
+    <!-- STEP 2: Project Setup -->
+    <section class="section" id="step2">
+      <div class="section-header">
+        <div class="step-badge">2</div>
+        <h2>Project Setup</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <span class="code-filename">project structure</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="cm"># Create project structure</span>
+<span class="fn">mkdir</span> my-ai-agent && cd my-ai-agent
+<span class="fn">python</span> -m venv .venv
+<span class="fn">source</span> .venv/bin/activate  <span class="cm"># On Windows: .venv\Scripts\activate</span>
+
+<span class="cm"># Recommended folder layout:</span>
+<span class="str">my-ai-agent/</span>
+├── <span class="str">agents/</span>
+│   ├── __init__.py
+│   ├── root_agent.py       <span class="cm"># Main orchestrator</span>
+│   └── specialist_agents/  <span class="cm"># Sub-agents</span>
+├── <span class="str">tools/</span>
+│   ├── __init__.py
+│   └── custom_tools.py     <span class="cm"># Tool definitions</span>
+├── main.py                 <span class="cm"># FastAPI entrypoint</span>
+├── requirements.txt
+├── Dockerfile
+└── .env</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">text</span>
+          <span class="code-filename">requirements.txt</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>google-adk>=0.3.0
+google-cloud-aiplatform>=1.60.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-dotenv>=1.0.0
+httpx>=0.27.0</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <span class="code-filename">install dependencies</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>pip install -r requirements.txt</pre>
+      </div>
+    </section>
+
+    <!-- STEP 3: Install ADK -->
+    <section class="section" id="step3">
+      <div class="section-header">
+        <div class="step-badge">3</div>
+        <h2>Configure ADK & Gemini</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-filename">config.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+
+load_dotenv()
+
+<span class="cm"># Google Cloud configuration</span>
+PROJECT_ID = os.<span class="fn">getenv</span>(<span class="str">"GOOGLE_CLOUD_PROJECT"</span>)
+LOCATION   = os.<span class="fn">getenv</span>(<span class="str">"GOOGLE_CLOUD_LOCATION"</span>, <span class="str">"us-central1"</span>)
+MODEL_NAME = os.<span class="fn">getenv</span>(<span class="str">"MODEL_NAME"</span>, <span class="str">"gemini-2.0-flash-001"</span>)
+
+<span class="cm"># Session configuration</span>
+SESSION_TTL_SECONDS = <span class="num">3600</span>  <span class="cm"># 1 hour</span>
+MAX_ITERATIONS      = <span class="num">10</span>    <span class="cm"># Max agent loops</span></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">env</span>
+          <span class="code-filename">.env</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=us-central1
+MODEL_NAME=gemini-2.0-flash-001</pre>
+      </div>
+    </section>
+
+    <!-- STEP 4: Define Tools -->
+    <section class="section" id="step4">
+      <div class="section-header">
+        <div class="step-badge">4</div>
+        <h2>Define Agent Tools</h2>
+      </div>
+      <p class="section-desc">Tools are Python functions with type hints and docstrings. ADK uses these to generate the function-calling schema sent to Gemini.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-filename">tools/custom_tools.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="kw">import</span> httpx
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+<span class="kw">from</span> google.adk.tools <span class="kw">import</span> ToolContext
+
+
+<span class="kw">def</span> <span class="fn">search_web</span>(query: str, max_results: int = <span class="num">5</span>) -> dict:
+    <span class="str">"""Search the web for information on a given topic.
+    
+    Args:
+        query: The search query string.
+        max_results: Maximum number of results to return (1-10).
+    
+    Returns:
+        Dictionary with 'results' list and 'total' count.
+    """</span>
+    <span class="cm"># Replace with your actual search API (Serper, SerpAPI, etc.)</span>
+    response = httpx.<span class="fn">get</span>(
+        <span class="str">"https://api.search-service.com/search"</span>,
+        params={<span class="str">"q"</span>: query, <span class="str">"num"</span>: max_results},
+        headers={<span class="str">"X-API-Key"</span>: <span class="str">"YOUR_KEY"</span>}
+    )
+    data = response.<span class="fn">json</span>()
+    <span class="kw">return</span> {
+        <span class="str">"results"</span>: data[<span class="str">"organic_results"</span>],
+        <span class="str">"total"</span>: <span class="fn">len</span>(data[<span class="str">"organic_results"</span>])
+    }
+
+
+<span class="kw">def</span> <span class="fn">get_weather</span>(city: str) -> dict:
+    <span class="str">"""Get current weather for a city.
+    
+    Args:
+        city: City name (e.g., 'San Francisco, CA').
+    
+    Returns:
+        Weather data including temperature, conditions, humidity.
+    """</span>
+    response = httpx.<span class="fn">get</span>(
+        <span class="str">f"https://api.openweathermap.org/data/2.5/weather"</span>,
+        params={<span class="str">"q"</span>: city, <span class="str">"appid"</span>: <span class="str">"YOUR_OWM_KEY"</span>, <span class="str">"units"</span>: <span class="str">"metric"</span>}
+    )
+    data = response.<span class="fn">json</span>()
+    <span class="kw">return</span> {
+        <span class="str">"city"</span>: city,
+        <span class="str">"temperature_c"</span>: data[<span class="str">"main"</span>][<span class="str">"temp"</span>],
+        <span class="str">"conditions"</span>: data[<span class="str">"weather"</span>][<span class="num">0</span>][<span class="str">"description"</span>],
+        <span class="str">"humidity_pct"</span>: data[<span class="str">"main"</span>][<span class="str">"humidity"</span>]
+    }
+
+
+<span class="kw">def</span> <span class="fn">save_to_database</span>(
+    collection: str,
+    document_id: str,
+    data: dict,
+    ctx: ToolContext          <span class="cm"># Injected automatically by ADK</span>
+) -> dict:
+    <span class="str">"""Persist data to Firestore.
+    
+    Args:
+        collection: Firestore collection name.
+        document_id: Document identifier.
+        data: Dictionary of fields to save.
+    
+    Returns:
+        Confirmation with document path.
+    """</span>
+    <span class="cm"># Access session state via ToolContext</span>
+    user_id = ctx.state.<span class="fn">get</span>(<span class="str">"user_id"</span>, <span class="str">"anonymous"</span>)
+    doc_ref = ctx.firestore.<span class="fn">collection</span>(collection).<span class="fn">document</span>(document_id)
+    doc_ref.<span class="fn">set</span>({**data, <span class="str">"saved_by"</span>: user_id})
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"saved"</span>, <span class="str">"path"</span>: <span class="str">f"{collection}/{document_id}"</span>}</pre>
+      </div>
+
+      <div class="info-box tip">
+        <span class="info-box-icon">💡</span>
+        <span><strong>Tip:</strong> Write detailed docstrings — Gemini uses them to decide when and how to call your tool. Vague descriptions lead to poor tool selection.</span>
+      </div>
+    </section>
+
+    <!-- STEP 5: Create Agent -->
+    <section class="section" id="step5">
+      <div class="section-header">
+        <div class="step-badge">5</div>
+        <h2>Create the Agent</h2>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-list">
+          <button class="tab-btn active" type="button" onclick="switchTab(this,'basic-agent')">Basic Agent</button>
+          <button class="tab-btn" type="button" onclick="switchTab(this,'stateful-agent')">Stateful Agent</button>
+          <button class="tab-btn" type="button" onclick="switchTab(this,'streaming-agent')">Streaming</button>
+        </div>
+
+        <div id="basic-agent" class="tab-panel active">
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">python</span>
+              <span class="code-filename">agents/root_agent.py</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="kw">from</span> google.adk.agents <span class="kw">import</span> LlmAgent
+<span class="kw">from</span> google.adk.models.lite_llm <span class="kw">import</span> LiteLlm
+<span class="kw">from</span> tools.custom_tools <span class="kw">import</span> search_web, get_weather
+<span class="kw">from</span> config <span class="kw">import</span> PROJECT_ID, LOCATION, MODEL_NAME
+
+<span class="cm"># Define the agent</span>
+root_agent = <span class="fn">LlmAgent</span>(
+    name=<span class="str">"research_assistant"</span>,
+    description=<span class="str">"A helpful research assistant that can search the web and check weather."</span>,
+    model=<span class="fn">LiteLlm</span>(
+        model=<span class="str">f"vertex_ai/{MODEL_NAME}"</span>,
+    ),
+    instruction=<span class="str">"""You are a knowledgeable research assistant.
+    
+When asked a question:
+1. Determine if you need to search for current information
+2. Use the search_web tool for recent or factual queries
+3. Provide concise, well-structured answers
+4. Always cite your sources when using search results
+
+Be helpful, accurate, and concise."""</span>,
+    tools=[search_web, get_weather],
+    output_key=<span class="str">"last_response"</span>,  <span class="cm"># Save response to session state</span>
+)</pre>
+          </div>
+        </div>
+
+        <div id="stateful-agent" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">python</span>
+              <span class="code-filename">agents/stateful_agent.py</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre><span class="kw">from</span> google.adk.agents <span class="kw">import</span> LlmAgent
+<span class="kw">from</span> google.adk.sessions <span class="kw">import</span> InMemorySessionService
+
+<span class="cm"># Session service for conversation memory</span>
+session_service = <span class="fn">InMemorySessionService</span>()
+
+stateful_agent = <span class="fn">LlmAgent</span>(
+    name=<span class="str">"stateful_assistant"</span>,
+    model=<span class="str">"gemini-2.0-flash-001"</span>,
+    instruction=<span class="str">"""You maintain conversation history.
+    
+User preferences are in session state:
+- Language: {user_language}
+- Timezone: {user_timezone}
+- Name: {user_name}
+
+Personalize your responses accordingly."""</span>,
+    tools=[search_web],
+)
+
+<span class="cm"># Initialize session with user data</span>
+<span class="kw">async def</span> <span class="fn">create_user_session</span>(user_id: str, preferences: dict):
+    session = <span class="kw">await</span> session_service.<span class="fn">create_session</span>(
+        app_name=<span class="str">"my-agent-app"</span>,
+        user_id=user_id,
+        state={
+            <span class="str">"user_name"</span>: preferences.<span class="fn">get</span>(<span class="str">"name"</span>, <span class="str">"User"</span>),
+            <span class="str">"user_language"</span>: preferences.<span class="fn">get</span>(<span class="str">"language"</span>, <span class="str">"English"</span>),
+            <span class="str">"user_timezone"</span>: preferences.<span class="fn">get</span>(<span class="str">"timezone"</span>, <span class="str">"UTC"</span>),
+        }
+    )
+    <span class="kw">return</span> session.id</pre>
+          </div>
+        </div>
+
+        <div id="streaming-agent" class="tab-panel">
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">python</span>
+              <span class="code-filename">agents/streaming_agent.py</span>
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <pre"><span class="kw">from</span> google.adk.agents <span class="kw">import</span> LlmAgent
+<span class="kw">from</span> google.adk.runners <span class="kw">import</span> Runner
+<span class="kw">from</span> google.adk.types <span class="kw">import</span> Content, Part
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">import</span> json
+
+agent = <span class="fn">LlmAgent</span>(
+    name=<span class="str">"streaming_agent"</span>,
+    model=<span class="str">"gemini-2.0-flash-001"</span>,
+    instruction=<span class="str">"You stream responses token by token."</span>,
+)
+
+<span class="kw">async def</span> <span class="fn">stream_response</span>(message: str, session_id: str):
+    runner = <span class="fn">Runner</span>(agent=agent, session_service=session_service)
+    
+    <span class="kw">async def</span> <span class="fn">generate</span>():
+        <span class="kw">async for</span> event <span class="kw">in</span> runner.<span class="fn">run_async</span>(
+            user_id=<span class="str">"user-1"</span>,
+            session_id=session_id,
+            new_message=<span class="fn">Content</span>(parts=[<span class="fn">Part</span>(text=message)])
+        ):
+            <span class="kw">if</span> event.content <span class="kw">and</span> event.content.parts:
+                <span class="kw">for</span> part <span class="kw">in</span> event.content.parts:
+                    <span class="kw">if</span> part.text:
+                        chunk = {<span class="str">"text"</span>: part.text, <span class="str">"done"</span>: <span class="kw">False</span>}
+                        <span class="kw">yield</span> <span class="str">f"data: {json.dumps(chunk)}\n\n"</span>
+        <span class="kw">yield</span> <span class="str">'data: {"done": true}\n\n'</span>
+    
+    <span class="kw">return</span> <span class="fn">StreamingResponse</span>(<span class="fn">generate</span>(), media_type=<span class="str">"text/event-stream"</span>)</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6: Multi-Agent -->
+    <section class="section" id="step6">
+      <div class="section-header">
+        <div class="step-badge">6</div>
+        <h2>Multi-Agent Orchestration</h2>
+      </div>
+      <p class="section-desc">Build complex pipelines by composing specialist agents under an orchestrator.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-filename">agents/multi_agent.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre"><span class="kw">from</span> google.adk.agents <span class="kw">import</span> LlmAgent, SequentialAgent, ParallelAgent
+
+<span class="cm"># Specialist agents</span>
+researcher = <span class="fn">LlmAgent</span>(
+    name=<span class="str">"researcher"</span>,
+    model=<span class="str">"gemini-2.0-flash-001"</span>,
+    instruction=<span class="str">"You are a web researcher. Find and summarize relevant information."</span>,
+    tools=[search_web],
+    output_key=<span class="str">"research_results"</span>,
+)
+
+writer = <span class="fn">LlmAgent</span>(
+    name=<span class="str">"writer"</span>,
+    model=<span class="str">"gemini-2.0-flash-001"</span>,
+    instruction=<span class="str">"""You are a technical writer. 
+    Research results: {research_results}
+    Transform the research into clear, engaging content."""</span>,
+    output_key=<span class="str">"draft_content"</span>,
+)
+
+reviewer = <span class="fn">LlmAgent</span>(
+    name=<span class="str">"reviewer"</span>,
+    model=<span class="str">"gemini-2.0-flash-001"</span>,
+    instruction=<span class="str">"""You are a critical reviewer.
+    Draft content: {draft_content}
+    Review for accuracy, clarity, and completeness."""</span>,
+    output_key=<span class="str">"final_content"</span>,
+)
+
+<span class="cm"># Sequential pipeline: Research → Write → Review</span>
+content_pipeline = <span class="fn">SequentialAgent</span>(
+    name=<span class="str">"content_pipeline"</span>,
+    description=<span class="str">"Research, write, and review content end-to-end."</span>,
+    sub_agents=[researcher, writer, reviewer],
+)
+
+<span class="cm"># Parallel execution: run multiple agents simultaneously</span>
+multi_search = <span class="fn">ParallelAgent</span>(
+    name=<span class="str">"multi_search"</span>,
+    description=<span class="str">"Search multiple sources in parallel."</span>,
+    sub_agents=[researcher, researcher],  <span class="cm"># Different prompts each</span>
+)</pre>
+      </div>
+
+      <div class="info-box note">
+        <span class="info-box-icon">ℹ️</span>
+        <span><strong>State sharing:</strong> Use <code>output_key</code> to pass data between sequential agents. ADK stores it in session state and injects it via template variables in instructions.</span>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- STEP 7: Containerize -->
+    <section class="section" id="step7">
+      <div class="section-header">
+        <div class="step-badge">7</div>
+        <h2>Containerize with Docker</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-filename">main.py — FastAPI server</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, HTTPException
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> google.adk.runners <span class="kw">import</span> Runner
+<span class="kw">from</span> google.adk.sessions <span class="kw">import</span> InMemorySessionService
+<span class="kw">from</span> google.adk.types <span class="kw">import</span> Content, Part
+<span class="kw">from</span> agents.root_agent <span class="kw">import</span> root_agent
+<span class="kw">import</span> uvicorn
+
+app = <span class="fn">FastAPI</span>(title=<span class="str">"AI Agent API"</span>, version=<span class="str">"1.0.0"</span>)
+session_service = <span class="fn">InMemorySessionService</span>()
+runner = <span class="fn">Runner</span>(agent=root_agent, session_service=session_service)
+
+<span class="kw">class</span> <span class="fn">ChatRequest</span>(BaseModel):
+    message: str
+    session_id: <span class="fn">str</span> | <span class="kw">None</span> = <span class="kw">None</span>
+    user_id: str = <span class="str">"default-user"</span>
+
+<span class="kw">class</span> <span class="fn">ChatResponse</span>(BaseModel):
+    response: str
+    session_id: str
+
+<span class="fn">@app.get</span>(<span class="str">"/health"</span>)
+<span class="kw">async def</span> <span class="fn">health_check</span>():
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"healthy"</span>}
+
+<span class="fn">@app.post</span>(<span class="str">"/chat"</span>, response_model=ChatResponse)
+<span class="kw">async def</span> <span class="fn">chat</span>(request: ChatRequest):
+    <span class="kw">try</span>:
+        <span class="cm"># Create or reuse session</span>
+        <span class="kw">if not</span> request.session_id:
+            session = <span class="kw">await</span> session_service.<span class="fn">create_session</span>(
+                app_name=<span class="str">"my-agent-app"</span>,
+                user_id=request.user_id
+            )
+            session_id = session.id
+        <span class="kw">else</span>:
+            session_id = request.session_id
+
+        <span class="cm"># Run the agent</span>
+        final_response = <span class="str">""</span>
+        <span class="kw">async for</span> event <span class="kw">in</span> runner.<span class="fn">run_async</span>(
+            user_id=request.user_id,
+            session_id=session_id,
+            new_message=<span class="fn">Content</span>(parts=[<span class="fn">Part</span>(text=request.message)])
+        ):
+            <span class="kw">if</span> event.is_final_response() <span class="kw">and</span> event.content:
+                <span class="kw">for</span> part <span class="kw">in</span> event.content.parts:
+                    <span class="kw">if</span> part.text:
+                        final_response += part.text
+
+        <span class="kw">return</span> <span class="fn">ChatResponse</span>(response=final_response, session_id=session_id)
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="num">500</span>, detail=<span class="fn">str</span>(e))
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    uvicorn.<span class="fn">run</span>(app, host=<span class="str">"0.0.0.0"</span>, port=<span class="num">8080</span>)</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">docker</span>
+          <span class="code-filename">Dockerfile</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="cm"># Multi-stage build for smaller image</span>
+<span class="tag">FROM</span> <span class="str">python:3.11-slim</span> AS builder
+
+WORKDIR /app
+<span class="tag">COPY</span> requirements.txt .
+<span class="tag">RUN</span> pip install --no-cache-dir --target=/app/deps -r requirements.txt
+
+<span class="cm"># Production stage</span>
+<span class="tag">FROM</span> <span class="str">python:3.11-slim</span>
+
+WORKDIR /app
+
+<span class="cm"># Copy dependencies and source</span>
+<span class="tag">COPY</span> --from=builder /app/deps /usr/local/lib/python3.11/site-packages
+<span class="tag">COPY</span> . .
+
+<span class="cm"># Non-root user for security</span>
+<span class="tag">RUN</span> useradd -m appuser && chown -R appuser:appuser /app
+<span class="tag">USER</span> appuser
+
+<span class="cm"># Cloud Run listens on PORT env var</span>
+<span class="tag">ENV</span> PORT=8080
+<span class="tag">EXPOSE</span> 8080
+
+<span class="tag">CMD</span> [<span class="str">"python"</span>, <span class="str">"-m"</span>, <span class="str">"uvicorn"</span>, <span class="str">"main:app"</span>, \
+     <span class="str">"--host"</span>, <span class="str">"0.0.0.0"</span>, <span class="str">"--port"</span>, <span class="str">"8080"</span>, \
+     <span class="str">"--workers"</span>, <span class="str">"1"</span>]</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <span class="code-filename">build & push image</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="cm"># Set variables</span>
+PROJECT_ID=<span class="str">"your-project-id"</span>
+REGION=<span class="str">"us-central1"</span>
+REPO=<span class="str">"ai-agents"</span>
+IMAGE=<span class="str">"my-ai-agent"</span>
+
+<span class="cm"># Create Artifact Registry repository</span>
+<span class="fn">gcloud</span> artifacts repositories create $REPO \
+  --repository-format=docker \
+  --location=$REGION
+
+<span class="cm"># Configure Docker auth</span>
+<span class="fn">gcloud</span> auth configure-docker ${REGION}-docker.pkg.dev
+
+<span class="cm"># Build and push</span>
+IMAGE_URL=<span class="str">"${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE}:latest"</span>
+<span class="fn">docker</span> build -t $IMAGE_URL .
+<span class="fn">docker</span> push $IMAGE_URL</pre>
+      </div>
+    </section>
+
+    <!-- STEP 8: Cloud Run -->
+    <section class="section" id="step8">
+      <div class="section-header">
+        <div class="step-badge">8</div>
+        <h2>Deploy to Cloud Run</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <span class="code-filename">deploy to Cloud Run</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="fn">gcloud</span> run deploy my-ai-agent \
+  --image=$IMAGE_URL \
+  --platform=managed \
+  --region=$REGION \
+  --allow-unauthenticated \
+  --min-instances=0 \
+  --max-instances=10 \
+  --memory=2Gi \
+  --cpu=2 \
+  --timeout=300 \
+  --concurrency=80 \
+  --set-env-vars="GOOGLE_CLOUD_PROJECT=${PROJECT_ID}" \
+  --set-env-vars="GOOGLE_CLOUD_LOCATION=${REGION}" \
+  --set-env-vars="MODEL_NAME=gemini-2.0-flash-001" \
+  --service-account=agent-sa@${PROJECT_ID}.iam.gserviceaccount.com</pre>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">⚡ Concurrency</div>
+          <div class="card-body">Set <code>--concurrency=80</code> for async agents. Reduce to 1-10 for CPU-heavy workloads or stateful in-memory sessions.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔐 Service Account</div>
+          <div class="card-body">Create a dedicated SA with roles: <code>aiplatform.user</code>, <code>datastore.user</code>. Never use default compute SA in production.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">💾 Memory</div>
+          <div class="card-body">Start with 2Gi. Increase if using large context windows or processing documents. Monitor with Cloud Monitoring.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⏱️ Timeout</div>
+          <div class="card-body">Set to 300s (5 min) for agent workloads. Multi-step agents with many tool calls can take 30-120 seconds.</div>
+        </div>
+      </div>
+
+      <div class="info-box warn">
+        <span class="info-box-icon">⚠️</span>
+        <span><strong>Cold starts:</strong> With <code>--min-instances=0</code>, expect 3-8s cold starts. Use <code>--min-instances=1</code> for latency-sensitive production workloads (increases cost ~$15-30/month).</span>
+      </div>
+    </section>
+
+    <!-- STEP 9: CI/CD -->
+    <section class="section" id="step9">
+      <div class="section-header">
+        <div class="step-badge">9</div>
+        <h2>CI/CD Pipeline</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">yaml</span>
+          <span class="code-filename">cloudbuild.yaml</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="attr">steps</span>:
+  <span class="cm"># Step 1: Run tests</span>
+  - <span class="attr">name</span>: <span class="str">'python:3.11-slim'</span>
+    <span class="attr">entrypoint</span>: bash
+    <span class="attr">args</span>:
+      - <span class="str">'-c'</span>
+      - |
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio
+        pytest tests/ -v
+
+  <span class="cm"># Step 2: Build Docker image</span>
+  - <span class="attr">name</span>: <span class="str">'gcr.io/cloud-builders/docker'</span>
+    <span class="attr">args</span>:
+      - build
+      - <span class="str">'-t'</span>
+      - <span class="str">'${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$COMMIT_SHA'</span>
+      - <span class="str">'.'</span>
+
+  <span class="cm"># Step 3: Push to Artifact Registry</span>
+  - <span class="attr">name</span>: <span class="str">'gcr.io/cloud-builders/docker'</span>
+    <span class="attr">args</span>:
+      - push
+      - <span class="str">'${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$COMMIT_SHA'</span>
+
+  <span class="cm"># Step 4: Deploy to Cloud Run</span>
+  - <span class="attr">name</span>: <span class="str">'gcr.io/google.com/cloudsdktool/cloud-sdk'</span>
+    <span class="attr">entrypoint</span>: gcloud
+    <span class="attr">args</span>:
+      - run
+      - deploy
+      - <span class="str">'${_SERVICE}'</span>
+      - <span class="str">'--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$COMMIT_SHA'</span>
+      - <span class="str">'--region=${_REGION}'</span>
+      - <span class="str">'--platform=managed'</span>
+
+<span class="attr">substitutions</span>:
+  <span class="attr">_REGION</span>: us-central1
+  <span class="attr">_REPO</span>: ai-agents
+  <span class="attr">_IMAGE</span>: my-ai-agent
+  <span class="attr">_SERVICE</span>: my-ai-agent
+
+<span class="attr">options</span>:
+  <span class="attr">logging</span>: CLOUD_LOGGING_ONLY</pre>
+      </div>
+    </section>
+
+    <!-- STEP 10: Monitoring -->
+    <section class="section" id="step10">
+      <div class="section-header">
+        <div class="step-badge">10</div>
+        <h2>Monitoring & Observability</h2>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <span class="code-filename">middleware/telemetry.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="kw">from</span> google.cloud <span class="kw">import</span> logging, monitoring_v3
+<span class="kw">from</span> fastapi <span class="kw">import</span> Request
+<span class="kw">import</span> time, structlog
+
+<span class="cm"># Structured JSON logging (Cloud Logging compatible)</span>
+log = structlog.<span class="fn">get_logger</span>()
+
+<span class="kw">async def</span> <span class="fn">telemetry_middleware</span>(request: Request, call_next):
+    start = time.<span class="fn">monotonic</span>()
+    response = <span class="kw">await</span> <span class="fn">call_next</span>(request)
+    duration = time.<span class="fn">monotonic</span>() - start
+    
+    log.<span class="fn">info</span>(
+        <span class="str">"request_completed"</span>,
+        path=request.url.path,
+        method=request.method,
+        status_code=response.status_code,
+        duration_ms=<span class="fn">round</span>(duration * <span class="num">1000</span>, <span class="num">2</span>),
+        session_id=request.headers.<span class="fn">get</span>(<span class="str">"X-Session-ID"</span>),
+    )
+    <span class="kw">return</span> response
+
+<span class="cm"># Add to FastAPI app</span>
+<span class="cm"># app.middleware("http")(telemetry_middleware)</span></pre>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">📊 Key Metrics to Track</div>
+          <div class="card-body">
+            Request latency (p50/p95/p99) · Agent iterations per request · Tool call success rates · Token usage per session · Error rates by tool
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🚨 Alerts to Configure</div>
+          <div class="card-body">
+            p95 latency > 30s · Error rate > 1% · Container memory > 80% · Gemini quota approaching limit
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- Patterns -->
+    <section class="section" id="patterns">
+      <div class="section-header">
+        <div class="step-badge">★</div>
+        <h2>Patterns & Best Practices</h2>
+      </div>
+
+      <div class="card card-accent">
+        <div class="card-title">🔄 Retry with exponential backoff</div>
+        <div class="card-body">Gemini API has rate limits. Wrap tool calls and model calls with tenacity retry logic. Start with 1s delay, max 60s, max 5 retries.</div>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">🗄️ Use Firestore for persistent sessions</div>
+        <div class="card-body">InMemorySessionService is lost on container restart. Use <code>VertexAiSessionService</code> or Firestore-backed sessions for production multi-turn conversations.</div>
+      </div>
+      <div class="card card-purple">
+        <div class="card-title">🔑 Secret Manager for API keys</div>
+        <div class="card-body">Never store API keys in environment variables or code. Use Google Secret Manager and mount secrets to Cloud Run at runtime.</div>
+      </div>
+      <div class="card card-orange">
+        <div class="card-title">⚡ Gemini model selection</div>
+        <div class="card-body"><strong>Flash</strong> for speed-critical tasks (tool routing, simple Q&A). <strong>Pro</strong> for complex reasoning, long documents, and multi-step planning. Use Flash as orchestrator, Pro for specialist agents.</div>
+      </div>
+      <div class="card card-yellow">
+        <div class="card-title">🧪 Test agents deterministically</div>
+        <div class="card-body">Mock LLM responses in unit tests with a <code>MockLlm</code> that returns predetermined tool calls and text. Test agent routing logic independently from model behavior.</div>
+      </div>
+
+      <div class="info-box tip info-box-tip-mt">
+        <span class="info-box-icon">🚀</span>
+        <span><strong>Production checklist:</strong> IAM least-privilege · Secret Manager for secrets · Firestore sessions · min-instances=1 · Cloud Armor WAF · VPC connector for private resources · Cloud Trace enabled</span>
+      </div>
+    </section>
+
+    <div class="footer-text">
+      Built with Gemini 2.0 · Agent Development Kit · Google Cloud Run — 2025
+    </div>
+
+  </main>
+</div>
+
+<script>
+function switchTab(btn, panelId) {
+  const tabs = btn.parentElement;
+  tabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const container = tabs.parentElement;
+  container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(panelId);
+  if (panel) panel.classList.add('active');
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  const text = pre.innerText || pre.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+  });
+}
+
+// Highlight active nav on scroll
+const sections = document.querySelectorAll('[id]');
+const navItems = document.querySelectorAll('.nav-item');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
